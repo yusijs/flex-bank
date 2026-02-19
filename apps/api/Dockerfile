@@ -1,4 +1,4 @@
-FROM node:20-alpine AS base
+FROM node:24-alpine AS base
 RUN npm install -g pnpm
 
 FROM base AS deps
@@ -14,7 +14,7 @@ COPY apps/api ./apps/api
 COPY tsconfig.base.json ./
 RUN pnpm --filter @overtime/api build
 
-FROM node:20-alpine AS runner
+FROM node:24-alpine AS runner
 WORKDIR /app
 RUN npm install -g pnpm
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
