@@ -1,0 +1,14 @@
+
+> @overtime/shared@0.1.0 test /Users/ronnie.laugen/WebstormProjects/untitled/packages/shared
+> vitest run
+
+
+ RUN  v2.1.9 /Users/ronnie.laugen/WebstormProjects/untitled/packages/shared
+
+ ✓ src/__tests__/index.test.ts (18 tests) 3ms
+
+ Test Files  1 passed (1)
+      Tests  18 passed (18)
+   Start at  08:52:29
+   Duration  421ms (transform 36ms, setup 0ms, collect 42ms, tests 3ms, environment 0ms, prepare 90ms)
+
