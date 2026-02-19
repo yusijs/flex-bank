@@ -11,12 +11,14 @@ RUN pnpm install --frozen-lockfile
 
 FROM deps AS build
 COPY packages/shared ./packages/shared
+RUN apk add --no-cache python3 make g++
 COPY apps/api ./apps/api
 COPY tsconfig.base.json ./
 RUN pnpm --filter @overtime/api build
 
 FROM node:24-alpine AS runner
 WORKDIR /app
+RUN apk add --no-cache python3 make g++
 RUN npm install -g pnpm
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
 COPY packages/shared/package.json ./packages/shared/
