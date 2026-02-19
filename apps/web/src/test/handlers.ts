@@ -33,6 +33,13 @@ export const handlers = [
       { status: 201 }
     )
   ),
+  http.post('/api/sessions/manual', async ({ request }) => {
+    const body = await request.json() as Record<string, unknown>;
+    return HttpResponse.json(
+      { ...mockSession, started_at: body.started_at, ended_at: body.ended_at, note: body.note ?? null },
+      { status: 201 }
+    );
+  }),
   http.patch('/api/sessions/:id/stop', () => HttpResponse.json(mockSession)),
   http.delete('/api/sessions/:id', () => new HttpResponse(null, { status: 204 })),
   http.get('/api/withdrawals', () => HttpResponse.json([mockWithdrawal])),

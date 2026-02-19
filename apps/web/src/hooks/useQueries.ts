@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { sessionsApi, withdrawalsApi, summaryApi } from '@/api/client';
-import type { CreateWithdrawal } from '@overtime/shared';
+import type { CreateWithdrawal, ManualSession } from '@overtime/shared';
 
 export const queryKeys = {
   sessions: ['sessions'] as const,
@@ -41,6 +41,17 @@ export function useStopSession() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.sessions });
       qc.invalidateQueries({ queryKey: queryKeys.activeSession });
+      qc.invalidateQueries({ queryKey: queryKeys.summary });
+    },
+  });
+}
+
+export function useAddManualSession() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: ManualSession) => sessionsApi.manual(data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.sessions });
       qc.invalidateQueries({ queryKey: queryKeys.summary });
     },
   });

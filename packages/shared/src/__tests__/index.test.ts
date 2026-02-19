@@ -5,6 +5,7 @@ import {
   CreateWithdrawalSchema,
   CreateSessionSchema,
   WorkSessionSchema,
+  ManualSessionSchema,
   type WorkSession,
 } from '../index.js';
 
@@ -115,6 +116,38 @@ describe('WorkSessionSchema', () => {
       created_at: 1_000_000,
     });
     expect(result.success).toBe(true);
+  });
+});
+
+describe('ManualSessionSchema', () => {
+  const valid = { started_at: 1_000_000, ended_at: 1_003_600_000 };
+
+  it('accepts valid start and end', () => {
+    expect(ManualSessionSchema.safeParse(valid).success).toBe(true);
+  });
+
+  it('accepts with optional note', () => {
+    expect(ManualSessionSchema.safeParse({ ...valid, note: 'Late work' }).success).toBe(true);
+  });
+
+  it('rejects when ended_at equals started_at', () => {
+    const result = ManualSessionSchema.safeParse({ started_at: 1_000_000, ended_at: 1_000_000 });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects when ended_at is before started_at', () => {
+    const result = ManualSessionSchema.safeParse({ started_at: 1_003_600_000, ended_at: 1_000_000 });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects missing started_at', () => {
+    const result = ManualSessionSchema.safeParse({ ended_at: 1_003_600_000 });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects missing ended_at', () => {
+    const result = ManualSessionSchema.safeParse({ started_at: 1_000_000 });
+    expect(result.success).toBe(false);
   });
 });
 

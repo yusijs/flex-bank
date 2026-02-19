@@ -24,6 +24,17 @@ export const StopSessionSchema = z.object({
 
 export type StopSession = z.infer<typeof StopSessionSchema>;
 
+export const ManualSessionSchema = z.object({
+  started_at: z.number().int().positive(),
+  ended_at: z.number().int().positive(),
+  note: z.string().max(500).optional(),
+}).refine((d) => d.ended_at > d.started_at, {
+  message: 'ended_at must be after started_at',
+  path: ['ended_at'],
+});
+
+export type ManualSession = z.infer<typeof ManualSessionSchema>;
+
 // ── Withdrawals ──────────────────────────────────────────────────────────────
 
 export const WithdrawalSchema = z.object({

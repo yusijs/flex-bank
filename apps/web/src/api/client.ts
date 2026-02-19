@@ -1,4 +1,4 @@
-import type { WorkSession, Withdrawal, Summary, CreateSession, StopSession, CreateWithdrawal } from '@overtime/shared';
+import type { WorkSession, Withdrawal, Summary, CreateSession, StopSession, CreateWithdrawal, ManualSession } from '@overtime/shared';
 
 const BASE = '/api';
 
@@ -23,6 +23,8 @@ export const sessionsApi = {
     request<WorkSession>('/sessions/start', { method: 'POST', body: JSON.stringify(data) }),
   stop: (id: string, data: StopSession = {}) =>
     request<WorkSession>(`/sessions/${id}/stop`, { method: 'PATCH', body: JSON.stringify(data) }),
+  manual: (data: ManualSession) =>
+    request<WorkSession>('/sessions/manual', { method: 'POST', body: JSON.stringify(data) }),
   remove: (id: string) => request<void>(`/sessions/${id}`, { method: 'DELETE' }),
 };
 
