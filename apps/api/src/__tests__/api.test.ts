@@ -5,6 +5,8 @@ import os from 'os';
 import path from 'path';
 import fs from 'fs';
 
+const TEST_JWT_SECRET = 'test-secret-for-unit-tests';
+
 function tmpDb() {
   return path.join(os.tmpdir(), `overtime-test-${Date.now()}-${Math.random()}.db`);
 }
@@ -15,7 +17,7 @@ describe('Sessions API', () => {
 
   beforeEach(async () => {
     dbPath = tmpDb();
-    app = buildApp(dbPath);
+    app = buildApp(dbPath, { skipAuth: true, jwtSecret: TEST_JWT_SECRET });
     await app.ready();
   });
 
@@ -180,7 +182,7 @@ describe('Withdrawals API', () => {
 
   beforeEach(async () => {
     dbPath = tmpDb();
-    app = buildApp(dbPath);
+    app = buildApp(dbPath, { skipAuth: true, jwtSecret: TEST_JWT_SECRET });
     await app.ready();
   });
 
@@ -254,7 +256,7 @@ describe('Summary API', () => {
 
   beforeEach(async () => {
     dbPath = tmpDb();
-    app = buildApp(dbPath);
+    app = buildApp(dbPath, { skipAuth: true, jwtSecret: TEST_JWT_SECRET });
     await app.ready();
   });
 
@@ -297,7 +299,7 @@ describe('Export API', () => {
 
   beforeEach(async () => {
     dbPath = tmpDb();
-    app = buildApp(dbPath);
+    app = buildApp(dbPath, { skipAuth: true, jwtSecret: TEST_JWT_SECRET });
     await app.ready();
   });
 
@@ -319,3 +321,91 @@ describe('Export API', () => {
   });
 });
 
+describe('Auth API', () => {
+  let app: FastifyInstance;
+  let dbPath: string;
+
+  beforeEach(async () => {
+    dbPath = tmpDb();
+    app = buildApp(dbPath, {
+      jwtSecret: TEST_JWT_SECRET,
+      adminUsername: 'testuser',
+      adminPassword: 'testpass',
+    });
+    await app.ready();
+  });
+
+  afterEach(async () => {
+    await app.close();
+    if (fs.existsSync(dbPath)) fs.unlinkSync(dbPath);
+  });
+
+  it('POST /auth/login returns token for valid credentials', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/auth/login',
+      payload: { username: 'testuser', password: 'testpass' },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().token).toBeDefined();
+  });
+
+  it('POST /auth/login returns 401 for wrong password', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/auth/login',
+      payload: { username: 'testuser', password: 'wrong' },
+    });
+    expect(res.statusCode).toBe(401);
+  });
+
+  it('POST /auth/login returns 401 for unknown user', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/auth/login',
+      payload: { username: 'nobody', password: 'testpass' },
+    });
+    expect(res.statusCode).toBe(401);
+  });
+
+  it('GET /auth/me returns username for valid token', async () => {
+    const login = await app.inject({
+      method: 'POST',
+      url: '/auth/login',
+      payload: { username: 'testuser', password: 'testpass' },
+    });
+    const { token } = login.json();
+    const res = await app.inject({
+      method: 'GET',
+      url: '/auth/me',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().username).toBe('testuser');
+  });
+
+  it('GET /auth/me returns 401 without token', async () => {
+    const res = await app.inject({ method: 'GET', url: '/auth/me' });
+    expect(res.statusCode).toBe(401);
+  });
+
+  it('protected routes return 401 without token', async () => {
+    const res = await app.inject({ method: 'GET', url: '/sessions' });
+    expect(res.statusCode).toBe(401);
+  });
+
+  it('protected routes are accessible with valid token', async () => {
+    const login = await app.inject({
+      method: 'POST',
+      url: '/auth/login',
+      payload: { username: 'testuser', password: 'testpass' },
+    });
+    const { token } = login.json();
+    const res = await app.inject({
+      method: 'GET',
+      url: '/sessions',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(res.statusCode).toBe(200);
+  });
+});

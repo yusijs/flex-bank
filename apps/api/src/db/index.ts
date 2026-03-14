@@ -3,8 +3,30 @@ import { drizzle } from 'drizzle-orm/better-sqlite3';
 import * as schema from './schema.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import crypto from 'crypto';
+import { v4 as uuidv4 } from 'uuid';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+export async function hashPassword(password: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const salt = crypto.randomBytes(16).toString('hex');
+    crypto.scrypt(password, salt, 64, (err, derivedKey) => {
+      if (err) reject(err);
+      else resolve(`${salt}:${derivedKey.toString('hex')}`);
+    });
+  });
+}
+
+export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    const [salt, key] = hash.split(':');
+    crypto.scrypt(password, salt, 64, (err, derivedKey) => {
+      if (err) reject(err);
+      else resolve(crypto.timingSafeEqual(Buffer.from(key, 'hex'), derivedKey));
+    });
+  });
+}
 
 export function createDb(dbPath?: string) {
   const resolvedPath = dbPath ?? path.join(__dirname, '../../data/overtime.db');
@@ -15,6 +37,13 @@ export function createDb(dbPath?: string) {
 
   // Create tables if they don't exist
   sqlite.exec(`
+    CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      username TEXT NOT NULL UNIQUE,
+      password_hash TEXT NOT NULL,
+      created_at INTEGER NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS work_sessions (
       id TEXT PRIMARY KEY,
       started_at INTEGER NOT NULL,
@@ -35,4 +64,18 @@ export function createDb(dbPath?: string) {
 }
 
 export type Db = ReturnType<typeof createDb>;
+
+export async function seedDefaultUser(db: Db, username: string, password: string) {
+  const existing = db.select().from(schema.users).all();
+  if (existing.length === 0) {
+    const hash = await hashPassword(password);
+    db.insert(schema.users).values({
+      id: uuidv4(),
+      username,
+      password_hash: hash,
+      created_at: Date.now(),
+    }).run();
+  }
+}
+
 
