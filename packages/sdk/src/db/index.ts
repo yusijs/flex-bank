@@ -29,13 +29,11 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 }
 
 export function createDb(dbPath?: string) {
-  const resolvedPath = dbPath ?? path.join(__dirname, '../../data/overtime.db');
+  const resolvedPath = dbPath ?? path.join(__dirname, '../../../data/overtime.db');
   const sqlite = new Database(resolvedPath);
 
-  // Enable WAL mode for better concurrency
   sqlite.pragma('journal_mode = WAL');
 
-  // Create tables if they don't exist
   sqlite.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
@@ -77,5 +75,3 @@ export async function seedDefaultUser(db: Db, username: string, password: string
     }).run();
   }
 }
-
-

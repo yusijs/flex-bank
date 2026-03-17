@@ -12,7 +12,7 @@ export const queryKeys = {
 // ── Sessions ─────────────────────────────────────────────────────────────────
 
 export function useSessions() {
-  return useQuery({ queryKey: queryKeys.sessions, queryFn: sessionsApi.list });
+  return useQuery({ queryKey: queryKeys.sessions, queryFn: () => sessionsApi.list() });
 }
 
 export function useActiveSession() {

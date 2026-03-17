@@ -17,6 +17,7 @@ export default defineConfig({
       },
     },
   },
+  // @ts-expect-error vitest augments vite's UserConfig but the types aren't merged here
   test: {
     environment: 'jsdom',
     globals: true,

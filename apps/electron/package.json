@@ -1,0 +1,37 @@
+{
+  "name": "@overtime/electron",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/main.js",
+  "scripts": {
+    "dev": "tsc && electron dist/main.js",
+    "build": "tsc && electron-builder",
+    "build:ts": "tsc"
+  },
+  "dependencies": {
+    "@overtime/sdk": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.7",
+    "electron": "^35.0.0",
+    "electron-builder": "^25.0.0",
+    "typescript": "^5.7.2"
+  },
+  "build": {
+    "appId": "com.overtime.tracker",
+    "productName": "Overtime Tracker",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "../web/dist/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "../web/dist",
+        "to": "web"
+      }
+    ]
+  }
+}

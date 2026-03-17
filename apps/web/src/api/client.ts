@@ -1,56 +1,24 @@
-import type { WorkSession, Withdrawal, Summary, CreateSession, StopSession, CreateWithdrawal, ManualSession } from '@overtime/shared';
+import { createHttpClient } from './http-client.js';
+import { createElectronClient } from './electron-client.js';
+import type { OvertimeClient } from './types.js';
 
-const BASE = '/api';
+export type { OvertimeClient, ExportResult } from './types.js';
 
-function authHeaders(): Record<string, string> {
-  const token = localStorage.getItem('auth_token');
-  return token ? { Authorization: `Bearer ${token}` } : {};
+function createClient(): OvertimeClient {
+  if (typeof window !== 'undefined' && window.electronAPI !== undefined) {
+    return createElectronClient(window.electronAPI);
+  }
+  return createHttpClient();
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...authHeaders(), ...init?.headers },
-    ...init,
-  });
-  if (res.status === 204) return undefined as T;
-  if (res.status === 401) {
-    localStorage.removeItem('auth_token');
-    window.location.href = '/';
-    throw new Error('Unauthorized');
-  }
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error(err?.error ?? res.statusText);
-  }
-  return res.json();
-}
+export const api: OvertimeClient = createClient();
 
-// Sessions
-export const sessionsApi = {
-  list: () => request<WorkSession[]>('/sessions'),
-  active: () => request<WorkSession | null>('/sessions/active'),
-  start: (data: CreateSession = {}) =>
-    request<WorkSession>('/sessions/start', { method: 'POST', body: JSON.stringify(data) }),
-  stop: (id: string, data: StopSession = {}) =>
-    request<WorkSession>(`/sessions/${id}/stop`, { method: 'PATCH', body: JSON.stringify(data) }),
-  manual: (data: ManualSession) =>
-    request<WorkSession>('/sessions/manual', { method: 'POST', body: JSON.stringify(data) }),
-  remove: (id: string) => request<void>(`/sessions/${id}`, { method: 'DELETE' }),
-};
+// Named exports preserved for backward compatibility with useQueries.ts
+export const sessionsApi = api.sessions;
+export const withdrawalsApi = api.withdrawals;
+export const summaryApi = api.summary;
+export const authApi = api.auth;
+export const exportApi = api.export;
 
-// Withdrawals
-export const withdrawalsApi = {
-  list: () => request<Withdrawal[]>('/withdrawals'),
-  create: (data: CreateWithdrawal) =>
-    request<Withdrawal>('/withdrawals', { method: 'POST', body: JSON.stringify(data) }),
-  remove: (id: string) => request<void>(`/withdrawals/${id}`, { method: 'DELETE' }),
-};
-
-// Summary
-export const summaryApi = {
-  get: () => request<Summary>('/summary'),
-};
-
-// Export
-export const exportUrl = (format: 'xlsx' | 'csv') => `${BASE}/export?format=${format}`;
-
+// Keep exportUrl for any existing code that navigates directly (HTTP-only)
+export const exportUrl = (format: 'xlsx' | 'csv') => `/api/export?format=${format}`;
