@@ -4,34 +4,52 @@
   "private": true,
   "main": "dist/main.js",
   "scripts": {
-    "dev": "tsc && electron dist/main.js",
-    "build": "tsc && electron-builder",
-    "build:ts": "tsc"
+    "dev": "pnpm build:bundle && electron dist/main.js",
+    "build:bundle": "pnpm build:main && pnpm build:preload",
+    "build:main": "esbuild src/main.ts --bundle --platform=node --target=node20 --outfile=dist/main.js --external:electron --external:better-sqlite3 --log-override:empty-import-meta=silent",
+    "build:preload": "esbuild src/preload.ts --bundle --platform=node --target=node20 --outfile=dist/preload.js --external:electron",
+    "build": "pnpm build:bundle && electron-builder"
   },
   "dependencies": {
-    "@overtime/sdk": "workspace:*"
+    "@overtime/sdk": "workspace:*",
+    "better-sqlite3": "^11.7.0"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^22.10.7",
     "electron": "^35.0.0",
     "electron-builder": "^25.0.0",
+    "esbuild": "^0.25.0",
     "typescript": "^5.7.2"
   },
   "build": {
     "appId": "com.overtime.tracker",
     "productName": "Overtime Tracker",
+    "asar": true,
     "directories": {
       "output": "release"
     },
     "files": [
       "dist/**/*",
-      "../web/dist/**/*"
+      "node_modules/**/*",
+      "!node_modules/.cache/**/*"
     ],
     "extraResources": [
       {
         "from": "../web/dist",
         "to": "web"
       }
-    ]
+    ],
+    "mac": {
+      "target": [
+        { "target": "dmg", "arch": ["x64", "arm64"] }
+      ],
+      "category": "public.app-category.productivity"
+    },
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] }
+      ]
+    }
   }
 }

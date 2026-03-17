@@ -87,12 +87,15 @@ function createWindow() {
     },
   });
 
-  // In production, load the bundled web app
-  const webDistPath = path.join(__dirname, '../../web/dist/index.html');
+  // In production (packaged), web is copied to Resources/web via extraResources
+  // In development, load from the monorepo web dist or Vite dev server
+  const webDistPath = app.isPackaged
+    ? path.join(process.resourcesPath, 'web', 'index.html')
+    : path.join(__dirname, '../../web/dist/index.html');
+
   if (fs.existsSync(webDistPath)) {
     win.loadFile(webDistPath);
   } else {
-    // In development, load from Vite dev server
     win.loadURL('http://localhost:5173');
   }
 }
