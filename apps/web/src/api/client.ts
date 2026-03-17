@@ -2,12 +2,22 @@ import type { WorkSession, Withdrawal, Summary, CreateSession, StopSession, Crea
 
 const BASE = '/api';
 
+function authHeaders(): Record<string, string> {
+  const token = localStorage.getItem('auth_token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...init?.headers },
+    headers: { 'Content-Type': 'application/json', ...authHeaders(), ...init?.headers },
     ...init,
   });
   if (res.status === 204) return undefined as T;
+  if (res.status === 401) {
+    localStorage.removeItem('auth_token');
+    window.location.href = '/';
+    throw new Error('Unauthorized');
+  }
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText }));
     throw new Error(err?.error ?? res.statusText);
