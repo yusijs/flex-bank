@@ -30,7 +30,7 @@ function Layout({ children }: { children: React.ReactNode }) {
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center gap-6">
           <div className="flex items-center gap-2 font-semibold">
             <Clock className="h-5 w-5 text-primary" />
-            Overtime Tracker
+            Flex Time Tracker
           </div>
           <nav className="flex gap-1 flex-1">
             <NavLink to="/" end className={navClass}>Dashboard</NavLink>

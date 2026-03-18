@@ -34,7 +34,7 @@ export function LoginPage() {
         <CardHeader className="text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
             <Clock className="h-6 w-6 text-primary" />
-            <span className="text-xl font-semibold">Overtime Tracker</span>
+            <span className="text-xl font-semibold">Flex Time Tracker</span>
           </div>
           <CardTitle className="text-lg font-medium text-muted-foreground">Sign in</CardTitle>
         </CardHeader>

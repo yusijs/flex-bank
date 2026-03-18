@@ -60,7 +60,7 @@ export function createExportSdk(db: Db) {
         return {
           data: new Uint8Array(buffer),
           contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-          filename: 'overtime-tracker.xlsx',
+          filename: 'flex-time-tracker.xlsx',
         };
       }
     },
