@@ -1,6 +1,6 @@
 import Fastify, { FastifyRequest, FastifyReply } from 'fastify';
 import fjwt from '@fastify/jwt';
-import { createDb, seedDefaultUser } from './db/index.js';
+import { createSdk } from '@overtime/sdk';
 import { sessionRoutes } from './routes/sessions.js';
 import { withdrawalRoutes } from './routes/withdrawals.js';
 import { summaryRoutes } from './routes/summary.js';
@@ -23,7 +23,7 @@ export function buildApp(dbPath?: string, options: BuildAppOptions = {}) {
   } = options;
 
   const fastify = Fastify({ logger: true });
-  const db = createDb(dbPath);
+  const sdk = createSdk(dbPath);
 
   // Register JWT plugin
   fastify.register(fjwt, { secret: jwtSecret });
@@ -40,11 +40,11 @@ export function buildApp(dbPath?: string, options: BuildAppOptions = {}) {
 
   // Seed default admin user after ready
   fastify.addHook('onReady', async () => {
-    await seedDefaultUser(db, adminUsername, adminPassword);
+    await sdk.seedDefaultUser(adminUsername, adminPassword);
   });
 
   // Public routes
-  fastify.register(authRoutes, { db });
+  fastify.register(authRoutes, { sdk });
   fastify.get('/health', async () => ({ status: 'ok' }));
 
   // Protected routes scope
@@ -59,10 +59,10 @@ export function buildApp(dbPath?: string, options: BuildAppOptions = {}) {
       });
     }
 
-    app.register(sessionRoutes, { db });
-    app.register(withdrawalRoutes, { db });
-    app.register(summaryRoutes, { db });
-    app.register(exportRoutes, { db });
+    app.register(sessionRoutes, { sdk });
+    app.register(withdrawalRoutes, { sdk });
+    app.register(summaryRoutes, { sdk });
+    app.register(exportRoutes, { sdk });
   });
 
   return fastify;

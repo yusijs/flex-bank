@@ -1,15 +1,14 @@
 import { FastifyPluginAsync } from 'fastify';
-import { eq } from 'drizzle-orm';
 import { z } from 'zod';
-import { Db, verifyPassword } from '../db/index.js';
-import { users } from '../db/schema.js';
+import type { OvertimeSdk } from '@overtime/sdk';
+import { InvalidCredentialsError } from '@overtime/sdk';
 
 const LoginSchema = z.object({
   username: z.string().min(1),
   password: z.string().min(1),
 });
 
-export const authRoutes: FastifyPluginAsync<{ db: Db }> = async (fastify, { db }) => {
+export const authRoutes: FastifyPluginAsync<{ sdk: OvertimeSdk }> = async (fastify, { sdk }) => {
   fastify.post('/auth/login', async (req, reply) => {
     const parsed = LoginSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -17,19 +16,17 @@ export const authRoutes: FastifyPluginAsync<{ db: Db }> = async (fastify, { db }
     }
 
     const { username, password } = parsed.data;
-    const [user] = db.select().from(users).where(eq(users.username, username)).all();
 
-    if (!user) {
-      return reply.status(401).send({ error: 'Invalid credentials' });
+    try {
+      const user = await sdk.auth.login(username, password);
+      const token = fastify.jwt.sign({ sub: user.userId, username: user.username });
+      return reply.send({ token });
+    } catch (err) {
+      if (err instanceof InvalidCredentialsError) {
+        return reply.status(401).send({ error: 'Invalid credentials' });
+      }
+      throw err;
     }
-
-    const valid = await verifyPassword(password, user.password_hash);
-    if (!valid) {
-      return reply.status(401).send({ error: 'Invalid credentials' });
-    }
-
-    const token = fastify.jwt.sign({ sub: user.id, username: user.username });
-    return reply.send({ token });
   });
 
   fastify.get('/auth/me', async (req, reply) => {

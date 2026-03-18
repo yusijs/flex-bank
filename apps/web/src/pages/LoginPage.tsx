@@ -1,10 +1,11 @@
-import { useState, FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
+import { authApi } from '@/api/client';
 
 export function LoginPage() {
   const { login } = useAuth();
@@ -18,20 +19,10 @@ export function LoginPage() {
     setError(null);
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        setError(body.error ?? 'Login failed');
-        return;
-      }
-      const { token } = await res.json();
+      const { token } = await authApi.login(username, password);
       login(token);
-    } catch {
-      setError('Network error. Please try again.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
       setLoading(false);
     }
@@ -43,7 +34,7 @@ export function LoginPage() {
         <CardHeader className="text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
             <Clock className="h-6 w-6 text-primary" />
-            <span className="text-xl font-semibold">Overtime Tracker</span>
+            <span className="text-xl font-semibold">Flex Time Tracker</span>
           </div>
           <CardTitle className="text-lg font-medium text-muted-foreground">Sign in</CardTitle>
         </CardHeader>

@@ -6,8 +6,6 @@ import { fileURLToPath } from 'url';
 import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
 export async function hashPassword(password: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const salt = crypto.randomBytes(16).toString('hex');
@@ -28,14 +26,21 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
   });
 }
 
+function getDefaultDbPath(): string {
+  // import.meta.url works in ESM (API server); falls back to cwd in bundled/CJS environments (Electron)
+  try {
+    return path.join(path.dirname(fileURLToPath(import.meta.url)), '../../../data/overtime.db');
+  } catch {
+    return path.join(process.cwd(), 'data', 'overtime.db');
+  }
+}
+
 export function createDb(dbPath?: string) {
-  const resolvedPath = dbPath ?? path.join(__dirname, '../../data/overtime.db');
+  const resolvedPath = dbPath ?? getDefaultDbPath();
   const sqlite = new Database(resolvedPath);
 
-  // Enable WAL mode for better concurrency
   sqlite.pragma('journal_mode = WAL');
 
-  // Create tables if they don't exist
   sqlite.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
@@ -77,5 +82,3 @@ export async function seedDefaultUser(db: Db, username: string, password: string
     }).run();
   }
 }
-
-

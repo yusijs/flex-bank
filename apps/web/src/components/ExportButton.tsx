@@ -1,10 +1,17 @@
 import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { exportUrl } from '@/api/client';
+import { exportApi } from '@/api/client';
 
 export function ExportButton() {
-  const handleExport = (format: 'xlsx' | 'csv') => {
-    window.location.href = exportUrl(format);
+  const handleExport = async (format: 'xlsx' | 'csv') => {
+    const result = await exportApi.generate(format);
+    const blob = new Blob([result.data.buffer as ArrayBuffer], { type: result.contentType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = result.filename;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -20,4 +27,3 @@ export function ExportButton() {
     </div>
   );
 }
-

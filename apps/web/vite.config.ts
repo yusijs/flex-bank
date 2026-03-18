@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 
 export default defineConfig({
+  base: './',
   plugins: [react()],
   resolve: {
     alias: {
@@ -17,6 +18,7 @@ export default defineConfig({
       },
     },
   },
+  // @ts-expect-error vitest augments vite's UserConfig but the types aren't merged here
   test: {
     environment: 'jsdom',
     globals: true,

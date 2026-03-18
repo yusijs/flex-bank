@@ -8,24 +8,17 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "test": "vitest run",
-    "test:watch": "vitest",
-    "db:migrate": "tsx src/db/migrate.ts"
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@fastify/jwt": "^10.0.0",
+    "@overtime/sdk": "workspace:*",
     "@overtime/shared": "workspace:*",
-    "better-sqlite3": "^11.7.0",
-    "drizzle-orm": "^0.38.4",
     "fastify": "^5.8.1",
-    "uuid": "^11.0.3",
-    "xlsx": "^0.18.5",
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^22.10.7",
-    "@types/uuid": "^10.0.0",
-    "drizzle-kit": "^0.30.4",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8"

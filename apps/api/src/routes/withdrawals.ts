@@ -1,59 +1,36 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { desc } from 'drizzle-orm';
-import { v4 as uuidv4 } from 'uuid';
-import { CreateWithdrawalSchema } from '@overtime/shared';
-import type { Db } from '../db/index.js';
-import { withdrawals } from '../db/schema.js';
-import { eq } from 'drizzle-orm';
+import type { OvertimeSdk } from '@overtime/sdk';
+import { WithdrawalNotFoundError } from '@overtime/sdk';
 
-export async function withdrawalRoutes(fastify: FastifyInstance, { db }: { db: Db }) {
-  // GET /withdrawals
+export async function withdrawalRoutes(fastify: FastifyInstance, { sdk }: { sdk: OvertimeSdk }) {
   fastify.get('/withdrawals', async (_req: FastifyRequest, reply: FastifyReply) => {
-    const rows = await db
-      .select()
-      .from(withdrawals)
-      .orderBy(desc(withdrawals.withdrawn_at));
-    return reply.send(rows);
+    return reply.send(await sdk.withdrawals.list());
   });
 
-  // POST /withdrawals
   fastify.post('/withdrawals', async (req: FastifyRequest, reply: FastifyReply) => {
-    const body = CreateWithdrawalSchema.safeParse(req.body ?? {});
-    if (!body.success) {
-      return reply.status(400).send({ error: body.error.flatten() });
+    try {
+      const withdrawal = await sdk.withdrawals.create(
+        req.body as Parameters<typeof sdk.withdrawals.create>[0],
+      );
+      return reply.status(201).send(withdrawal);
+    } catch (err) {
+      if (err instanceof Error && err.name === 'ZodError') {
+        return reply.status(400).send({ error: err.message });
+      }
+      throw err;
     }
-
-    const withdrawal = {
-      id: uuidv4(),
-      minutes: body.data.minutes,
-      reason: body.data.reason ?? null,
-      withdrawn_at: Date.now(),
-    };
-
-    await db.insert(withdrawals).values(withdrawal);
-    return reply.status(201).send(withdrawal);
   });
 
-  // DELETE /withdrawals/:id
   fastify.delete('/withdrawals/:id', async (req: FastifyRequest, reply: FastifyReply) => {
     const { id } = req.params as { id: string };
-
-    const rows = await db
-      .select()
-      .from(withdrawals)
-      .where(eq(withdrawals.id, id))
-      .limit(1);
-
-    if (rows.length === 0) {
-      return reply.status(404).send({ error: 'Withdrawal not found' });
+    try {
+      await sdk.withdrawals.remove(id);
+      return reply.status(204).send();
+    } catch (err) {
+      if (err instanceof WithdrawalNotFoundError) {
+        return reply.status(404).send({ error: err.message });
+      }
+      throw err;
     }
-
-    await db.delete(withdrawals).where(eq(withdrawals.id, id));
-    return reply.status(204).send();
   });
 }
-
-
-
-
-

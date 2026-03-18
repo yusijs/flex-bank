@@ -21,4 +21,3 @@ export const withdrawals = sqliteTable('withdrawals', {
   reason: text('reason'),
   withdrawn_at: integer('withdrawn_at').notNull(),
 });
-

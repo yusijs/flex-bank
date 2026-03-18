@@ -1,4 +1,4 @@
-import { BrowserRouter, NavLink, Route, Routes, Navigate } from 'react-router-dom';
+import { BrowserRouter, HashRouter, NavLink, Route, Routes, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Clock, LogOut } from 'lucide-react';
 import { DashboardPage } from '@/pages/DashboardPage';
@@ -7,6 +7,9 @@ import { WithdrawalsPage } from '@/pages/WithdrawalsPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+
+const IS_ELECTRON = typeof window !== 'undefined' && window.electronAPI !== undefined;
+const Router = IS_ELECTRON ? HashRouter : BrowserRouter;
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 10_000 } },
@@ -27,7 +30,7 @@ function Layout({ children }: { children: React.ReactNode }) {
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center gap-6">
           <div className="flex items-center gap-2 font-semibold">
             <Clock className="h-5 w-5 text-primary" />
-            Overtime Tracker
+            Flex Time Tracker
           </div>
           <nav className="flex gap-1 flex-1">
             <NavLink to="/" end className={navClass}>Dashboard</NavLink>
@@ -75,11 +78,11 @@ function AppRoutes() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
+      <Router>
         <AuthProvider>
           <AppRoutes />
         </AuthProvider>
-      </BrowserRouter>
+      </Router>
     </QueryClientProvider>
   );
 }
