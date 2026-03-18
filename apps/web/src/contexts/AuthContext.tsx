@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 
 const TOKEN_KEY = 'auth_token';
+const IS_ELECTRON = typeof window !== 'undefined' && window.electronAPI !== undefined;
 
 interface AuthContextValue {
   token: string | null;
@@ -12,14 +13,19 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY));
+  const [token, setToken] = useState<string | null>(() => {
+    if (IS_ELECTRON) return 'electron';
+    return localStorage.getItem(TOKEN_KEY);
+  });
 
   const login = useCallback((t: string) => {
+    if (IS_ELECTRON) return;
     localStorage.setItem(TOKEN_KEY, t);
     setToken(t);
   }, []);
 
   const logout = useCallback(() => {
+    if (IS_ELECTRON) return;
     localStorage.removeItem(TOKEN_KEY);
     setToken(null);
   }, []);

@@ -1,4 +1,4 @@
-import { BrowserRouter, NavLink, Route, Routes, Navigate } from 'react-router-dom';
+import { BrowserRouter, HashRouter, NavLink, Route, Routes, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Clock, LogOut } from 'lucide-react';
 import { DashboardPage } from '@/pages/DashboardPage';
@@ -7,6 +7,9 @@ import { WithdrawalsPage } from '@/pages/WithdrawalsPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+
+const IS_ELECTRON = typeof window !== 'undefined' && window.electronAPI !== undefined;
+const Router = IS_ELECTRON ? HashRouter : BrowserRouter;
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 10_000 } },
@@ -75,11 +78,11 @@ function AppRoutes() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
+      <Router>
         <AuthProvider>
           <AppRoutes />
         </AuthProvider>
-      </BrowserRouter>
+      </Router>
     </QueryClientProvider>
   );
 }
