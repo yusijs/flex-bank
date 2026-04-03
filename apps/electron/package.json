@@ -17,7 +17,7 @@
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^22.10.7",
-    "electron": "^35.0.0",
+    "electron": "^39.8.4",
     "electron-builder": "^25.0.0",
     "esbuild": "^0.25.0",
     "typescript": "^5.7.2"
