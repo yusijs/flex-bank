@@ -13,7 +13,7 @@
   "dependencies": {
     "@overtime/shared": "workspace:*",
     "better-sqlite3": "^11.7.0",
-    "drizzle-orm": "^0.38.4",
+    "drizzle-orm": "^0.45.2",
     "uuid": "^11.0.3",
     "xlsx": "^0.18.5"
   },
