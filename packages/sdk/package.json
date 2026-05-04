@@ -14,7 +14,7 @@
     "@overtime/shared": "workspace:*",
     "better-sqlite3": "^11.7.0",
     "drizzle-orm": "^0.38.4",
-    "uuid": "^11.0.3",
+    "uuid": "^14.0.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
