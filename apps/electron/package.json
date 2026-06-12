@@ -19,7 +19,7 @@
     "@types/node": "^22.10.7",
     "electron": "^35.0.0",
     "electron-builder": "^25.0.0",
-    "esbuild": "^0.25.0",
+    "esbuild": "^0.28.1",
     "typescript": "^5.7.2"
   },
   "build": {
